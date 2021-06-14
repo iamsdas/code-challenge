@@ -1,11 +1,10 @@
 import sys
-
-sys.setrecursionlimit(int(float('inf')))
+from typing import List, Optional
 
 
 class MempoolTransaction():
 
-    def __init__(self, txid, fee, weight, parents):
+    def __init__(self, txid: str, fee: str, weight: str, parents: Optional[str]):
         self.txid = txid
         self.fee = int(fee)
         self.weight = int(weight)
@@ -21,26 +20,30 @@ def parse_mempool_csv():
         return([MempoolTransaction(*line.strip().split(',')) for line in f.readlines()])
 
 
-def knapSack(W, trans, n, vis, val):
+def knapSack(W: int, trans: List[MempoolTransaction]):
+    n = len(trans)
+    K = [[{'vis': [], 'val': 0} for x in range(W + 1)] for x in range(n + 1)]
 
-    if n == 0 or W == 0:
-        return {'vis': vis, 'val': val}
+    for i in range(n + 1):
+        for w in range(W + 1):
+            if i == 0 or w == 0:
+                continue
+            else:
+                K[i][w] = K[i-1][w]
+                if trans[i-1].weight <= w:
+                    K[i][w] = K[i-1][w]
+                    if (K[i-1][w-trans[i-1].weight]['val']+trans[i-1].fee <= K[i-1][w]['val']):
+                        K[i][w]['val'] = K[i-1][w -
+                                                trans[i-1].weight]['val'] + trans[i-1].fee
 
-    if (trans[n-1].weight > W):
-        return knapSack(W, trans, n-1, vis, val)
-
-    else:
-        a = knapSack(W, trans, n-1, vis, val)
-        vis.append(trans[n-1].txid)
-        val += trans[n-1].fee
-        b = knapSack(W, trans, n-1, vis, val)
-        return a if (a['val'] > b['val']) else b
+    return K[n][W]
 
 
 def main():
     transactions = parse_mempool_csv()
-    block = knapSack(4000000, transactions, len(transactions), [], 0)['val']
-    print(block)
+    # block = knapSack(40000, transactions)['val']
+    # print(block)
+    print(transactions)
 
 
 main()
