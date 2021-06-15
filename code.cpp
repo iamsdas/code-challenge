@@ -1,6 +1,11 @@
+/**
+ * code.cpp
+ * Submission for Summer of Bitcoin Code Challenge
+ * by Suryashankar Das
+ **/
+
 #include <bits/stdc++.h>
 using namespace std;
-
 #define MAX_WEIGHT (int)4e6
 
 class MemPoolTransactions
@@ -21,6 +26,7 @@ public:
 		num_parents = parents.size();
 	}
 
+	// parses string to generate list
 	vector<string> parse_parents(string &p)
 	{
 		stringstream ss(p);
@@ -32,6 +38,7 @@ public:
 		return res;
 	}
 
+	// highest fees, lowest weight, lowest(none) parents
 	bool operator<(const MemPoolTransactions &other) const
 	{
 		if (this->num_parents == other.num_parents)
@@ -48,6 +55,7 @@ public:
 	}
 };
 
+// read file and generate a mempool map
 void parse_mempool_csv(unordered_map<string, MemPoolTransactions *> &mempool)
 {
 	ifstream file("mempool.csv");
@@ -85,24 +93,29 @@ public:
 
 	Block()
 	{
+		// generate the mempool
 		parse_mempool_csv(mempool);
+		// add children to parents
 		for (const pair<string, MemPoolTransactions *> &transaction : mempool)
 		{
 			for (const string &parent : transaction.second->parents)
 			{
 				mempool[parent]->children.push_back(transaction.first);
 			}
+			// insert all mempool transactions into the set
 			st.insert(*transaction.second);
 		}
-
+		// generate final list of transactions
 		while (!st.empty())
 		{
+			// last item of the set is the next optimal item to be added
 			if ((*st.rbegin()).weight + total_weight > MAX_WEIGHT)
-				break;
+				break; // end if max weight reached
 			final_transactions.push_back((*st.rbegin()).txid);
 			total_weight += (*st.rbegin()).weight;
 			total_fee += (*st.rbegin()).fee;
 
+			// remove and re-add to reflect their new position in the set
 			for (const string &child : (*st.rbegin()).children)
 			{
 				st.erase(*mempool[child]);
@@ -121,6 +134,7 @@ int main()
 
 	Block block;
 
+	// write the final transactions to the file
 	ofstream file("block.txt");
 	if (file.is_open())
 		for (const string &txid : block.final_transactions)
