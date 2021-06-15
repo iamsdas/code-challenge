@@ -54,18 +54,22 @@ void parse_mempool_csv(unordered_map<string, MemPoolTransactions *> &mempool)
 	string line, col;
 	vector<string> params;
 
-	while (getline(file, line))
+	if (file.is_open())
 	{
-		params.clear();
-		stringstream ss(line);
-		while (getline(ss, col, ','))
+		while (getline(file, line))
 		{
-			params.push_back(col);
+			params.clear();
+			stringstream ss(line);
+			while (getline(ss, col, ','))
+			{
+				params.push_back(col);
+			}
+			if (params.size() == 3)
+				params.push_back("");
+			mempool[params[0]] = new MemPoolTransactions(params);
 		}
-		if (params.size() == 3)
-			params.push_back("");
-		mempool[params[0]] = new MemPoolTransactions(params);
 	}
+	file.close();
 }
 
 class Block
@@ -116,6 +120,13 @@ int main()
 	cin.tie(NULL);
 
 	Block block;
+
+	ofstream file("block.txt");
+	if (file.is_open())
+		for (const string &txid : block.final_transactions)
+			file << txid << "\n";
+	file.close();
+
 	cout << "### generated block ###\n";
 	cout << "number of transactions: " << block.final_transactions.size() << "\n";
 	cout << "fees: " << block.total_fee << " weight: " << block.total_weight << "\n";
