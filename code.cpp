@@ -137,8 +137,12 @@ int main()
 	// write the final transactions to the file
 	ofstream file("block.txt");
 	if (file.is_open())
-		for (const string &txid : block.final_transactions)
-			file << txid << "\n";
+		for (int i = 0; i < block.final_transactions.size(); i++)
+		{
+			file << block.final_transactions[i];
+			if (i != block.final_transactions.size() - 1)
+				file << '\n';
+		}
 	file.close();
 
 	cout << "### generated block ###\n";
